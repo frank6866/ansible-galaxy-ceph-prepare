@@ -1,0 +1,9 @@
+---
+# tasks file for ceph-prepare
+
+- name: "fail if Operating System is not CentOS-7.x"
+  fail: msg="Operating System {{ ansible_distribution }}-{{ ansible_distribution_version }} not supported"
+  when: (ansible_distribution != "CentOS" and ansible_distribution != "RedHat") or ansible_distribution_major_version != "7"
+
+- name: ceph-prepare configuration on CentOS
+  include: centos.yml

@@ -1,0 +1,55 @@
+---
+
+# 1. ntp
+- name: install ntp
+  yum: name=ntp state=present
+  when: ceph_prepare_install_ntp
+
+- name: start and enable ntpd
+  service: name=ntpd state=started enabled=yes
+  when: ceph_prepare_install_ntp
+
+
+# 2. hosts
+- name: config /etc/hosts file when not registered in DNS
+  lineinfile: dest=/etc/hosts regexp="{{ item.ip }}    {{ item.hostname }}"
+              line="{{ item.ip }}    {{ item.hostname }}" state={{ item.state }}
+              backup=yes
+  with_items: "{{ ip_hostname_in_etc_hosts | default([])}}"
+  when: ip_hostname_in_etc_hosts is defined
+
+
+# 3. users and sudo
+- name: comment Defaults requiretty in /etc/sudoers
+  replace: dest=/etc/sudoers regexp='^Defaults    requiretty' replace='# Defaults    requiretty'
+
+- name: set wheel group executing sudo without password
+  lineinfile: dest=/etc/sudoers regexp="^%wheel" state=present
+              line="%wheel ALL=(ALL) NOPASSWD{{ ":" }} ALL"
+              backup=yes
+
+- name: create users
+  user: name={{ item.name }} groups=wheel  shell=/bin/bash state=present
+  with_items: "{{ ceph_prepare_user | default([])}}"
+
+- name: add public key for user
+  authorized_key: user={{ item.name }} key={{ item.public_key }}  state=present
+  with_items: "{{ ceph_prepare_user | default([])}}"
+  ignore_errors: true
+
+
+# 4. disable firewalld
+- name: stop and disable firewalld
+  service: name=firewalld state=stopped enabled=no
+
+# 5. disable selinux
+- name: disable selinux
+  selinux: state=disabled
+
+# 6. copy ceph yum repo
+- name: copy ceph yum repo
+  copy: src=etc/yum.repos.d/ceph.repo dest=/etc/yum.repos.d/ceph.repo
+
+
+
+
