@@ -46,10 +46,4 @@
 - name: disable selinux
   selinux: state=disabled
 
-# 6. copy ceph yum repo
-- name: copy ceph yum repo
-  copy: src=etc/yum.repos.d/ceph.repo dest=/etc/yum.repos.d/ceph.repo
-
-
-
 

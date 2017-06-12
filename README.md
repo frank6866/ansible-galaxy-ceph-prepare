@@ -5,7 +5,6 @@ This role is used to do some prepare work before deploy ceph, including the foll
 * configure ntp if you do configur
 * disable firewall
 * create user for ceph-deploy
-* create ceph yum repo files
 
 
 Role Variables
